@@ -1,1 +1,6 @@
 @import "tailwindcss";
+
+@theme {
+    --color-adminGreen: #3c8670;
+    --color-HeahderGreen: #24ca85;
+}
