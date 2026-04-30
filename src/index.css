@@ -1,6 +1,13 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Gravitas+One&display=swap');
 
 @theme {
     --color-adminGreen: #3c8670;
     --color-HeahderGreen: #24ca85;
+}
+
+@layer utilities {
+    .font-gravitas {
+        font-family: var(--font-gravitas);
+    }
 }
