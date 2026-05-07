@@ -6,9 +6,8 @@ import { BsEyeFill } from "react-icons/bs";
 import { BsEyeSlashFill } from "react-icons/bs";
 import axios from "axios";
 import fundo from "../SignIn/icons/fundoverde.png"
+import { api } from "../../api/api-config.js";
 
-
-const api = "http://192.168.1.6:3000";
 
 
 
@@ -38,37 +37,17 @@ function SignIn() {
             return;
         }
 
-        const resposta = await fetch(`${api}/loginUsuario`, {
-            method: 'POST',
-            headers: { 'content-type': 'application/json' },
-            body: JSON.stringify({
-                email_usuario,
-                senha_usuario,
-            })
-        });
-
-        // try {
-        //     const resposta = await axios.post(`${api}/loginUsuario`, { email_usuario, senha_usuario, });
-        //     resposta.status == 200 ? navigate("/") : alert("Erro");
-
-        //     console.log(email_usuario, senha_usuario)
-        // }
-
-        // catch (erro) {
-        //     console.log(erro)
-        // }
-
-        const usuario = await resposta.json();
-
-        if (resposta.status == 200) {
-            localStorage.setItem("email", usuario.email_usuario);
-            localStorage.setItem("id", usuario.id_usuario);
-            console.log(usuario.nivel);
-            if (usuario.nivel == '3') {
-                return navigate("/Admin");
+        try {
+            const { data, status } = await api.post("/loginUsuario", { email_usuario, senha_usuario });
+            console.log(data, status);
+            if (status == 200) {
+                localStorage.setItem("email", data.email_usuario);
+                localStorage.setItem("id", data.id_usuario);
+                data.nivel == '3'?navigate("/Admin"):navigate("/");
             }
-        } else {
-            alert("Usuario ou senha incorretos");
+        }
+        catch (error) {
+           console.log(error)
         }
     }
 
@@ -107,7 +86,8 @@ function SignIn() {
             </div>
         </main>
 
-    );
-}
+    )
+};
+
 
 export default SignIn;

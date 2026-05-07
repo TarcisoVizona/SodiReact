@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-
 import perfilIcon from './Icons/perfil.png';
 import cadeadoIcon from './Icons/cadeado.png';
 import sodiLogo from './Icons/sodi.png';
