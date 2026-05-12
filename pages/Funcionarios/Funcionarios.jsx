@@ -1,6 +1,6 @@
 import { React, useState } from "react";
 import useFuncionariosHook from "./useFuncionariosHook";
-import { Excluir } from "../../services/crudServicos.service";
+import { ExcluirFuncionario } from "../../services/crudServicos.service";
 
 export function Funcionarios() {
   const { dados } = useFuncionariosHook();
@@ -19,10 +19,19 @@ export function Funcionarios() {
             <h1 className="font-bold">Email do funcionário:</h1>
             <h1>{element.email_usuario}</h1>
             <h1 className="font-bold">Nível:</h1>
-            <p>{element.nivel==null?1:''}</p>
+            <p>{element.nivel == null ? 1 : ""}</p>
             <div className="flex justify-around mt-5 mb-5">
-              <button onClick={() => {Excluir()}} className="cursor-pointer shadow-xl/10 border border-gray-100 rounded-2xl p-5" >❌​</button>
-              <button className="cursor-pointer shadow-xl/10 border border-gray-100 rounded-2xl p-5">✏️​</button>
+              <button
+                onClick={() => {
+                 ExcluirFuncionario(element.id_usuario)
+                }}
+                className="cursor-pointer shadow-xl/10 border border-gray-100 rounded-2xl p-5"
+              >
+                ❌​
+              </button>
+              <button className="cursor-pointer shadow-xl/10 border border-gray-100 rounded-2xl p-5">
+                ✏️​
+              </button>
             </div>
           </div>
         );

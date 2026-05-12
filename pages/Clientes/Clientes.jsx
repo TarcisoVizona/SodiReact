@@ -5,7 +5,7 @@ import { Excluir } from "../../services/crudServicos.service";
 
 export function Clientes() {
   const { dados } = useClientesHook();
-
+  
   return (
     <div id="principal" className="flex flex-wrap gap-6 p-6">
       {dados.map((element) => {
@@ -23,7 +23,7 @@ export function Clientes() {
             <h1 className="font-bold">Telefone do cliente:</h1>
             <p>{element.telefone_cliente}</p>
             <div className="flex justify-around mt-5 mb-5">
-              <button onClick={() => {Excluir()}} className="cursor-pointer shadow-xl/10 border border-gray-100 rounded-2xl p-5">
+              <button onClick={() => {Excluir(element.id_cliente)}} className="cursor-pointer shadow-xl/10 border border-gray-100 rounded-2xl p-5">
                 ❌​
               </button>
               <button className="cursor-pointer shadow-xl/10 border border-gray-100 rounded-2xl p-5">
