@@ -1,15 +1,12 @@
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { BiSolidUserCircle } from "react-icons/bi";
 import { IoLockClosed } from "react-icons/io5";
-import { BsEyeFill } from "react-icons/bs";
-import { BsEyeSlashFill } from "react-icons/bs";
-import axios from "axios";
-import fundo from "../SignIn/icons/fundoverde.png"
+import { BsEyeFill, BsEyeSlashFill } from "react-icons/bs";
+
+import fundo from "../SignIn/icons/fundoverde.png";
 import { api } from "../../api/api-config.js";
-
-
-
+import CampoDeTexto from "../../components/CaixaDeTexto/CaixaDeTexto.jsx";
 
 function SignIn() {
     const navigate = useNavigate();
@@ -18,76 +15,137 @@ function SignIn() {
     const [senha, setSenha] = useState("");
     const [visivel, setVisivel] = useState(false);
 
+    const [isEmailValid, setIsEmailValid] = useState(true);
+    const [isSenhaValid, setIsSenhaValid] = useState(true);
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    useEffect(() => {
+        setIsEmailValid(emailRegex.test(email));
+    }, [email]);
+
+    useEffect(() => {
+        setIsSenhaValid(senha.length >= 8);
+    }, [senha]);
+
     async function enviar() {
-        const email_usuario = email;
-        const senha_usuario = senha;
-
-        if (email_usuario === '' || senha_usuario === '') {
-            alert('Preencha todos os campos');
+        if (!email || !senha) {
+            alert("Preencha todos os campos");
             return;
         }
 
-        if (senha_usuario.length < 8) {
-            alert('A senha deve conter no mínimo 8 caracteres');
+        if (!isEmailValid) {
+            alert("Digite um email válido");
             return;
         }
 
-        if (!email_usuario.includes('@') || !email_usuario.includes('.com')) {
-            alert('Digite um email válido');
+        if (!isSenhaValid) {
+            alert("A senha deve conter no mínimo 8 caracteres");
             return;
         }
 
         try {
-            const { data, status } = await api.post("/loginUsuario", { email_usuario, senha_usuario });
-            console.log(data, status);
-            if (status == 200) {
+            const { data, status } = await api.post("/loginUsuario", {
+                email_usuario: email,
+                senha_usuario: senha,
+            });
+
+            if (status === 200) {
                 localStorage.setItem("email", data.email_usuario);
                 localStorage.setItem("id", data.id_usuario);
-                data.nivel == '3'?navigate("/Admin"):navigate("/");
+
+                data.nivel == "3"
+                    ? navigate("/Admin")
+                    : navigate("/");
             }
-        }
-        catch (error) {
-           console.log(error)
+        } catch (error) {
+            console.log(error);
+            alert("Usuário ou senha incorretos");
         }
     }
 
-
     return (
-        <main className="flex items-center justify-between">
-            <article className="p-10">
-                <div className="flex justify-around text-[#d9d9d9]">
-                    <p className="text-[#3c8670] border-b-4 border-[#3c8670] cursor-pointer font-anton">Login</p>
-                    <Link to={"/Cadastro"} className="cursor-pointer font-gravitas">
+        <main className="flex min-h-screen bg-[#ffffff]">
+            <article className="flex flex-col justify-center px-16 w-[40%]">
+
+                <div className="flex gap-10 text-[#d9d9d9] mb-10">
+                    <p className="text-[#3c8670] border-b-4 border-[#3c8670] pb-1 cursor-pointer font-bold">
+                        Login
+                    </p>
+
+                    <Link
+                        to={"/Cadastro"}
+                        className="cursor-pointer"
+                    >
                         Cadastrar-se
                     </Link>
                 </div>
-                <div className="flex flex-col justify-center items-start p-5 gap-5 ">
-                    <div className="flex items-center rounded-2xl bg-white border-2 border-back-300 p-2 shadow-xl/30">
-                        <BiSolidUserCircle color="#3c8670" size={20} />
-                        <input className="bg-white outline-none ml-2 w-65 " value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Digite seu email:" type="text" />
-                    </div>
-                    <div className="flex items-center rounded-2xl bg-white border-2 border-back-300 p-2 shadow-xl/30">
-                        <IoLockClosed color="#3c8670" size={20} />
-                        <input className="bg-white outline-none ml-2 w-60" value={senha} onChange={(e) => setSenha(e.target.value)} placeholder="Digite sua senha:" type={visivel ? "password" : "text"} />
-                        {visivel ? <BsEyeFill color="#3c8670" size={20} onClick={() => setVisivel(!visivel)} /> :
-                            <BsEyeSlashFill color="#3c8670" size={20} onClick={() => setVisivel(!visivel)} />}
-                    </div>
-                    <button className="cursor-pointer bg-[#3c8670] rounded-4xl shadow-xl/30 text-[white] p-4" onClick={() => enviar()}>Entrar
+
+                <div className="flex flex-col gap-6 w-full ">
+
+                    <CampoDeTexto
+                        label="E-mail"
+                        placeholder="Digite seu email"
+                        texto={email}
+                        setTexto={setEmail}
+                        isValid={isEmailValid}
+                        errorMessage="E-mail inválido"
+                        className="border-black"
+                    >
+                        <BiSolidUserCircle
+                            color="#3c8670"
+                            size={22}
+                        />
+                    </CampoDeTexto>
+
+                    <CampoDeTexto
+                        label="Senha"
+                        placeholder="Digite sua senha"
+                        texto={senha}
+                        setTexto={setSenha}
+                        isValid={isSenhaValid}
+                        errorMessage="Senha deve ter no mínimo 8 caracteres"
+                        type={visivel ? "text" : "password"}
+                    >
+                        <div
+                            className="cursor-pointer"
+                            onClick={() => setVisivel(!visivel)}
+                        >
+                            {visivel ? (
+                                <BsEyeFill
+                                    color="#3c8670"
+                                    size={20}
+                                />
+                            ) : (
+                                <BsEyeSlashFill
+                                    color="#3c8670"
+                                    size={20}
+                                />
+                            )}
+                        </div>
+                    </CampoDeTexto>
+
+                    <button
+                        onClick={enviar}
+                        className="rounded-full p-4 text-white font-semibold duration-300 bg-[#3c8670] hover:bg-[#2f6b59] cursor-pointer shadow-xl"
+                    >
+                        Entrar
                     </button>
                 </div>
             </article>
-            <div className="flex items-end justify-end w-full ">
 
-            </div>
             <div
-                className="h-screen bg-cover bg-center flex justify-center items-center w-700"
-                style={{ backgroundImage: `url(${fundo})` }}>
-                <img className="flex justify-center items-center w-70" src="pages/SignIn/icons/logo.png" alt="" />
+                className="flex-1 bg-cover bg-center flex justify-center items-center"
+                style={{ backgroundImage: `url(${fundo})` }}
+            >
+                <img
+                    className="w-72"
+                    src="pages/SignIn/icons/logo.png"
+                    alt="logo"
+                />
             </div>
         </main>
-
-    )
-};
-
+    );
+}
 
 export default SignIn;
