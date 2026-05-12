@@ -7,6 +7,7 @@ import { BsEyeFill, BsEyeSlashFill } from "react-icons/bs";
 import fundo from "../SignIn/icons/fundoverde.png";
 import { api } from "../../api/api-config.js";
 import CampoDeTexto from "../../components/CaixaDeTexto/CaixaDeTexto.jsx";
+import axios from "axios";
 
 function SignIn() {
     const navigate = useNavigate();
@@ -29,6 +30,7 @@ function SignIn() {
     }, [senha]);
 
     async function enviar() {
+        console.log("aki")
         if (!email || !senha) {
             alert("Preencha todos os campos");
             return;
@@ -44,11 +46,14 @@ function SignIn() {
             return;
         }
 
+        console.log({email, senha})
         try {
             const { data, status } = await api.post("/loginUsuario", {
                 email_usuario: email,
                 senha_usuario: senha,
             });
+
+            console.log(status)
 
             if (status === 200) {
                 localStorage.setItem("email", data.email_usuario);
@@ -59,8 +64,13 @@ function SignIn() {
                     : navigate("/");
             }
         } catch (error) {
-            console.log(error);
-            alert("Usuário ou senha incorretos");
+            if (axios.isAxiosError(error)){
+                if(error.status == 404)
+                    return alert("E-mail não cadastrado")
+            }
+            else {
+                alert("usuario ou senha incorreto")
+            }
         }
     }
 
@@ -126,7 +136,7 @@ function SignIn() {
                     </CampoDeTexto>
 
                     <button
-                        onClick={enviar}
+                        onClick={()=> enviar()}
                         className="rounded-full p-4 text-white font-semibold duration-300 bg-[#3c8670] hover:bg-[#2f6b59] cursor-pointer shadow-xl"
                     >
                         Entrar
