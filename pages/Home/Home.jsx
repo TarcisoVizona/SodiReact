@@ -1,12 +1,20 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { CgProfile } from "react-icons/cg";
-import { MdOutlineLogout } from "react-icons/md";
-const api = "http://192.168.1.6:3000";
+import axios from "axios";
+import { api } from "../../api/axios-config";
+import { data } from "react-router-dom";
+//CERTO DO TIO RO
+const listaBack = axios
+  .get("http://192.168.1.10:3000/endmaquinas")
+  .then((resp) => resp.data);
 
 function Home() {
+  const lista = use(listaBack);
+
   const [mostrarForm, setMostrarForm] = useState(false);
   const [busca, setBusca] = useState("");
   const [ordens, setOrdens] = useState([]);
+  const [clicouSalvar, setClicouSalvar] = useState(false);
 
   const [form, setForm] = useState({
     idMaquina: "",
@@ -16,20 +24,71 @@ function Home() {
     marca: "",
     mecanico: "",
     modelo: "",
+    imagem: "",
   });
 
+  const [isStatusValid, setIsStatusValid] = useState(true);
+  const [isAnoValid, setIsAnoValid] = useState(true);
+  const [isDescricaoValid, setIsDescricaoValid] = useState(true);
+  const [isMarcaValid, setIsMarcaValid] = useState(true);
+  const [isMecanicoValid, setIsMecanicoValid] = useState(true);
+  const [isModeloValid, setIsModeloValid] = useState(true);
+
+  useEffect(() => {
+    if (form.status.length < 5) {
+      setIsStatusValid(false);
+    } else {
+      setIsStatusValid(true);
+    }
+
+    if (form.ano.length < 4) {
+      setIsAnoValid(false);
+    } else {
+      setIsAnoValid(true);
+    }
+
+    if (form.descricao.length < 5) {
+      setIsDescricaoValid(false);
+    } else {
+      setIsDescricaoValid(true);
+    }
+
+    if (form.marca.length < 5) {
+      setIsMarcaValid(false);
+    } else {
+      setIsMarcaValid(true);
+    }
+
+    if (form.mecanico.length < 5) {
+      setIsMecanicoValid(false);
+    } else {
+      setIsMecanicoValid(true);
+    }
+
+    if (form.modelo.length < 5) {
+      setIsModeloValid(false);
+    } else {
+      setIsModeloValid(true);
+    }
+  }, [form]);
+
   function mudarInput(e) {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    setForm({
+      ...form,
+      [e.target.name]: e.target.value,
+    });
   }
 
-  // 🔹 GET - buscar ordens do usuário
   async function buscarOrdens() {
-    const id_usuario = localStorage.getItem("id");
+    try {
+      const id_usuario = localStorage.getItem("id");
 
-    const resposta = await fetch(`${api}/ordens/${id_usuario}`);
-    const dados = await resposta.json();
+      const resposta = await api.get("/OS/");
 
-    setOrdens(dados);
+      setOrdens(resposta.data);
+    } catch (erro) {
+      alert("Erro ao buscar ordens");
+    }
   }
 
   useEffect(() => {
@@ -37,59 +96,63 @@ function Home() {
   }, []);
 
   async function salvar() {
-    const id_usuario = localStorage.getItem("id");
+    setClicouSalvar(true);
 
-    // validação simples
-    for (let campo in form) {
-      if (form[campo] == "") {
-        alert("Preencha todos os campos");
-        return;
-      }
+    if (
+      isStatusValid == false ||
+      isAnoValid == false ||
+      isDescricaoValid == false ||
+      isMarcaValid == false ||
+      isMecanicoValid == false ||
+      isModeloValid == false
+    ) {
+      return;
     }
 
-    const resposta = await fetch(`${api}/criarOrdem`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        ...form,
-        id_usuario,
-      }),
-    });
-
-    if (resposta.status == 200) {
-      alert("Ordem criada!");
-      setMostrarForm(false);
-
-      setForm({
-        idMaquina: "",
-        status: "",
-        ano: "",
-        descricao: "",
-        marca: "",
-        mecanico: "",
-        modelo: "",
+    try {
+      console.log(form)
+      const resposta = await api.post("/cadastrarOS", {
+        nome_mecanico:form.mecanico,
+        data_abertura: new Date(),
+        descricao_problema: form.descricao,
+        id_maquinas: form.idMaquina,
+        status: form.status
       });
-
-      buscarOrdens();
-    } else {
-      alert("Erro ao criar ordem");
+      if (resposta.status == 201) {
+        alert("Ordem criada!");
+        setMostrarForm(false);
+        setForm({
+          idMaquina: "",
+          status: "",
+          ano: "",
+          descricao: "",
+          marca: "",
+          mecanico: "",
+          modelo: "",
+          imagem: "",
+        });
+        setClicouSalvar(false);
+      }
+    } catch(erro) {
+      console.log(erro);
+      return alert("Erro ao salvar");
     }
   }
 
   return (
     <main className="min-h-screen bg-gray-100 flex flex-col">
-      <header className="bg-[#24ac85] p-5 flex justify-center  items-center">
-       <div className="flex-2 flex justify-end pr-25">
-         <input
-          type="text"
-          placeholder="Buscar ordem..."
-          value={busca}
-          onChange={(e) => setBusca(e.target.value)}
-          className="p-3 w-80 rounded-full outiline-none bg-white "
-        />
-       </div>
+      <header className="bg-[#24ac85] p-5 flex justify-center items-center">
+        <div className="flex-2 flex justify-end pr-25">
+          <input
+            type="text"
+            placeholder="Buscar ordem..."
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+            className="p-3 w-80 rounded-full outline-none bg-white"
+          />
+        </div>
+
         <div className="flex-1 flex justify-end">
-          <MdOutlineLogout size="40" color="white" />
           <CgProfile size="40" color="white" />
         </div>
       </header>
@@ -107,52 +170,108 @@ function Home() {
         {mostrarForm && (
           <div className="bg-white p-6 rounded-2xl w-80 shadow">
             <div className="flex flex-col gap-3">
-              <input
-                name="idMaquina"
-                placeholder="Id da Máquina"
+              <select
+              name="idMaquina"
+                className="border p-2 rounded-xl"
                 value={form.idMaquina}
                 onChange={mudarInput}
-                className="border p-2 rounded-xl"
-              />
+              >
+                <option value="">Selecione uma máquina</option>
+
+                {lista.map((user) => (
+                  <option key={user.id_maquinas} value={user.id_maquinas}>
+                    {user.id_maquinas}
+                  </option>
+                ))}
+              </select>
+              <div>
+                <input
+                  name="status"
+                  placeholder="Status"
+                  value={form.status}
+                  onChange={mudarInput}
+                  className="border p-2 rounded-xl w-full"
+                />
+
+                {clicouSalvar && !isStatusValid && (
+                  <p className="text-red-500 text-sm">Status inválido</p>
+                )}
+              </div>
+
+              <div>
+                <input
+                  name="ano"
+                  placeholder="Ano"
+                  value={form.ano}
+                  onChange={mudarInput}
+                  className="border p-2 rounded-xl w-full"
+                />
+
+                {clicouSalvar && !isAnoValid && (
+                  <p className="text-red-500 text-sm">Ano inválido</p>
+                )}
+              </div>
+
+              <div>
+                <input
+                  name="descricao"
+                  placeholder="Descrição"
+                  value={form.descricao}
+                  onChange={mudarInput}
+                  className="border p-2 rounded-xl w-full"
+                />
+
+                {clicouSalvar && !isDescricaoValid && (
+                  <p className="text-red-500 text-sm">Descrição inválida</p>
+                )}
+              </div>
+
+              <div>
+                <input
+                  name="marca"
+                  placeholder="Marca"
+                  value={form.marca}
+                  onChange={mudarInput}
+                  className="border p-2 rounded-xl w-full"
+                />
+
+                {clicouSalvar && !isMarcaValid && (
+                  <p className="text-red-500 text-sm">Marca inválida</p>
+                )}
+              </div>
+
+              <div>
+                <input
+                  name="mecanico"
+                  placeholder="Mecânico"
+                  value={form.mecanico}
+                  onChange={mudarInput}
+                  className="border p-2 rounded-xl w-full"
+                />
+
+                {clicouSalvar && !isMecanicoValid && (
+                  <p className="text-red-500 text-sm">Mecânico inválido</p>
+                )}
+              </div>
+
+              <div>
+                <input
+                  name="modelo"
+                  placeholder="Modelo"
+                  value={form.modelo}
+                  onChange={mudarInput}
+                  className="border p-2 rounded-xl w-full"
+                />
+
+                {clicouSalvar && !isModeloValid && (
+                  <p className="text-red-500 text-sm">Modelo inválido</p>
+                )}
+              </div>
+
               <input
-                name="status"
-                placeholder="Status"
-                value={form.status}
-                onChange={mudarInput}
-                className="border p-2 rounded-xl"
-              />
-              <input
-                name="ano"
-                placeholder="Ano"
-                value={form.ano}
-                onChange={mudarInput}
-                className="border p-2 rounded-xl"
-              />
-              <input
-                name="descricao"
-                placeholder="Descrição"
-                value={form.descricao}
-                onChange={mudarInput}
-                className="border p-2 rounded-xl"
-              />
-              <input
-                name="marca"
-                placeholder="Marca"
-                value={form.marca}
-                onChange={mudarInput}
-                className="border p-2 rounded-xl"
-              />
-              <input
-                name="mecanico"
-                placeholder="Mecânico"
-                value={form.mecanico}
-                onChange={mudarInput}
-                className="border p-2 rounded-xl"
-              />
-              <input
-                name="modelo"
-                placeholder="Modelo"
-                value={form.modelo}
+                name="imagem"
+                placeholder="Imagem"
+                value={form.imagem}
                 onChange={mudarInput}
                 className="border p-2 rounded-xl"
               />
@@ -175,26 +294,6 @@ function Home() {
             </div>
           </div>
         )}
-
-        <div className="w-80 flex flex-col gap-3">
-          {ordens
-            .filter((ordem) =>
-              ordem.descricao.toLowerCase().includes(busca.toLowerCase()),
-            )
-            .map((ordem) => (
-              <div key={ordem.id} className="bg-white p-3 rounded-xl shadow">
-                <p>
-                  <b>Máquina:</b> {ordem.idMaquina}
-                </p>
-                <p>
-                  <b>Status:</b> {ordem.status}
-                </p>
-                <p>
-                  <b>Descrição:</b> {ordem.descricao}
-                </p>
-              </div>
-            ))}
-        </div>
       </div>
 
       <footer className="bg-[#24ac85] h-20 mt-auto"></footer>
