@@ -1,7 +1,7 @@
 import { useState, useEffect, use } from "react";
 import { CgProfile } from "react-icons/cg";
 import axios from "axios";
-import { api } from "../../api/axios-config";
+import { api } from "../../api/api-config";
 import { data } from "react-router-dom";
 //CERTO DO TIO RO
 const listaBack = axios
