@@ -5,7 +5,7 @@ import casa from "./Icons/casa.png";
 import grafico from "./Icons/grafico.png";
 import maquinario from "./Icons/maquinario.png";
 import perfil from "./Icons/perfil.png";
-import funciario from "./Icons/funcionario.svg"
+import funciario from "./Icons/funcionario.svg";
 import planilha from "./Icons/planilha.png";
 import sair from "./Icons/sair.png";
 import blackperfil from "./Icons/blackperfil.svg";
@@ -145,7 +145,7 @@ function Admin() {
         </div>
       </aside>
       <div className="flex-1">
-        <header className="h-30 flex p-6 shadow-2xl justify-between items-center">
+        <header className="hidden md:flex h-30 p-6 shadow-2xl justify-between items-center ">
           <div>
             <h1 className="text-4xl font-bold">
               <span className="text-HeahderGreen">SODI</span>
@@ -213,34 +213,33 @@ function Admin() {
               </div>
             </div>
             <div className="flex gap-13 p-6">
-              <div className="gap-10 flex flex-col justify-center items-center bg-adminGreen w-80 h-fit p-10 rounded-2xl">
+              <div className="gap-10 flex flex-col justify-center items-center bg-adminGreen w-90 h-fit p-10 rounded-2xl">
                 <h1 className="text-white text-2xl">Cadastro de máquinas</h1>
-
                 <div className="flex flex-col gap-5">
                   <input
                     type="text"
-                    className="bg-white w-60 p-3 rounded-[10px]"
+                    className="bg-white w-80 p-3 rounded-[10px]"
                     placeholder="Modelo da máquina..."
                     value={modelo}
                     onChange={(e) => setModelo(e.target.value)}
                   />
                   <input
                     type="text"
-                    className="bg-white w-60 p-3 rounded-[10px]"
+                    className="bg-white w-80 p-3 rounded-[10px]"
                     placeholder="Marca da máquina..."
                     value={marca}
                     onChange={(e) => setMarca(e.target.value)}
                   />
                   <input
                     type="text"
-                    className="bg-white w-60 p-3 rounded-[10px]"
+                    className="bg-white w-80 p-3 rounded-[10px]"
                     placeholder="Ano da máquina..."
                     value={anoMaq}
                     onChange={(e) => setAnoMaq(e.target.value)}
                   />
                   <input
                     type="text"
-                    className="bg-white w-60 p-3 rounded-[10px]"
+                    className="bg-white w-80 p-3 rounded-[10px]"
                     placeholder="Id do cliente..."
                     value={idCliente}
                     onChange={(e) => setIdCliente(e.target.value)}
@@ -249,7 +248,7 @@ function Admin() {
                     type="file"
                     id="imageInput"
                     accept="image/*"
-                    className="bg-white w-60 p-3 rounded-[10px]"
+                    className="bg-white w-80 p-3 rounded-[10px]"
                     onChange={selecionarImagem}
                     required
                   />
