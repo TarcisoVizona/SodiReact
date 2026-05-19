@@ -3,9 +3,11 @@ import { CgProfile } from "react-icons/cg";
 import axios from "axios";
 import { api } from "../../api/api-config";
 import { data } from "react-router-dom";
+
+
 //CERTO DO TIO RO
 const listaBack = axios
-  .get("http://192.168.1.10:3000/endmaquinas")
+  .get("http://192.168.1.9:3000/endmaquinas")
   .then((resp) => resp.data);
 
 function Home() {
@@ -23,7 +25,6 @@ function Home() {
     descricao: "",
     marca: "",
     mecanico: "",
-    modelo: "",
     imagem: "",
   });
 
@@ -32,7 +33,6 @@ function Home() {
   const [isDescricaoValid, setIsDescricaoValid] = useState(true);
   const [isMarcaValid, setIsMarcaValid] = useState(true);
   const [isMecanicoValid, setIsMecanicoValid] = useState(true);
-  const [isModeloValid, setIsModeloValid] = useState(true);
 
   useEffect(() => {
     if (form.status.length < 5) {
@@ -64,12 +64,6 @@ function Home() {
     } else {
       setIsMecanicoValid(true);
     }
-
-    if (form.modelo.length < 5) {
-      setIsModeloValid(false);
-    } else {
-      setIsModeloValid(true);
-    }
   }, [form]);
 
   function mudarInput(e) {
@@ -79,12 +73,28 @@ function Home() {
     });
   }
 
+  async function enviarImagem(e) {
+    const arquivo = e.target.files[0];
+
+    if (!arquivo) {
+      return;
+    }
+
+    const reader = new FileReader();
+
+    reader.readAsDataURL(arquivo);
+
+    reader.onload = () => {
+      setForm({
+        ...form,
+        imagem: reader.result,
+      });
+    };
+  }
+
   async function buscarOrdens() {
     try {
-      const id_usuario = localStorage.getItem("id");
-
       const resposta = await api.get("/OS/");
-
       setOrdens(resposta.data);
     } catch (erro) {
       alert("Erro ao buscar ordens");
@@ -103,24 +113,30 @@ function Home() {
       isAnoValid == false ||
       isDescricaoValid == false ||
       isMarcaValid == false ||
-      isMecanicoValid == false ||
-      isModeloValid == false
+      isMecanicoValid == false
     ) {
       return;
     }
 
     try {
-      console.log(form)
-      const resposta = await api.post("/cadastrarOS", {
-        nome_mecanico:form.mecanico,
-        data_abertura: new Date(),
-        descricao_problema: form.descricao,
-        id_maquinas: form.idMaquina,
-        status: form.status
-      });
+      console.log(form);
+
+      const formData = new FormData();
+
+      formData.append("nome_mecanico", form.mecanico);
+      formData.append("data_abertura", new Date());
+      formData.append("descricao_problema", form.descricao);
+      formData.append("id_maquinas", form.idMaquina);
+      formData.append("status", form.status);
+      formData.append("imagem", form.imagem);
+
+      const resposta = await api.post("/cadastrarOS", formData);
+
       if (resposta.status == 201) {
         alert("Ordem criada!");
+
         setMostrarForm(false);
+
         setForm({
           idMaquina: "",
           status: "",
@@ -128,12 +144,12 @@ function Home() {
           descricao: "",
           marca: "",
           mecanico: "",
-          modelo: "",
           imagem: "",
         });
+
         setClicouSalvar(false);
       }
-    } catch(erro) {
+    } catch (erro) {
       console.log(erro);
       return alert("Erro ao salvar");
     }
@@ -171,7 +187,7 @@ function Home() {
           <div className="bg-white p-6 rounded-2xl w-80 shadow">
             <div className="flex flex-col gap-3">
               <select
-              name="idMaquina"
+                name="idMaquina"
                 className="border p-2 rounded-xl"
                 value={form.idMaquina}
                 onChange={mudarInput}
@@ -184,6 +200,7 @@ function Home() {
                   </option>
                 ))}
               </select>
+
               <div>
                 <input
                   name="status"
@@ -255,26 +272,23 @@ function Home() {
               </div>
 
               <div>
+                <label>Adicionar imagem</label>
+
                 <input
-                  name="modelo"
-                  placeholder="Modelo"
-                  value={form.modelo}
-                  onChange={mudarInput}
+                  type="file"
+                  accept="image/*"
+                  onChange={enviarImagem}
                   className="border p-2 rounded-xl w-full"
                 />
 
-                {clicouSalvar && !isModeloValid && (
-                  <p className="text-red-500 text-sm">Modelo inválido</p>
+                {form.imagem && (
+                  <img
+                    src={form.imagem}
+                    alt="Imagem"
+                    className="w-40 mt-3 rounded-xl"
+                  />
                 )}
               </div>
-
-              <input
-                name="imagem"
-                placeholder="Imagem"
-                value={form.imagem}
-                onChange={mudarInput}
-                className="border p-2 rounded-xl"
-              />
             </div>
 
             <div className="flex justify-between mt-5">

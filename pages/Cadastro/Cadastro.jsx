@@ -1,139 +1,191 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import perfilIcon from './Icons/perfil.png';
-import cadeadoIcon from './Icons/cadeado.png';
-import sodiLogo from './Icons/sodi.png';
-import fundoVerde from './Icons/fundoverde.png';
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+
+import { BiSolidUserCircle } from "react-icons/bi";
+import { IoLockClosed } from "react-icons/io5";
+import { BsEyeFill, BsEyeSlashFill } from "react-icons/bs";
+
+import fundoVerde from "../Cadastro/Icons/fundoverde.png";
+import { api } from "../../api/api-config.js";
+import CampoDeTexto from "../../components/CaixaDeTexto/CaixaDeTexto.jsx";
+import axios from "axios";
 
 function Cadastrar() {
-  const [email, setEmail] = useState('');
-  const [senha, setSenha] = useState('');
-  const [confirmarSenha, setConfirmarSenha] = useState('');
+    const navigate = useNavigate();
 
-  const navigate = useNavigate();
-  const api = "http://192.168.1.6:3000";
+    const [email, setEmail] = useState("");
+    const [senha, setSenha] = useState("");
+    const [confirmarSenha, setConfirmarSenha] = useState("");
 
-  async function enviar() {
-    if (email === '' || senha === '' || confirmarSenha === '') {
-      alert('Preencha todos os campos!');
-      return;
-    }
-    if (senha !== confirmarSenha) {
-      alert('As senhas não coincidem');
-      return;
-    }
-    if (senha.length < 8) {
-      alert('A senha deve ter no mínimo 8 caracteres');
-      return;
-    }
-    if (!email.includes('@') || !email.includes('.com')) {
-      alert('Digite um email válido');
-      return;
+    const [visivel, setVisivel] = useState(false);
+    const [visivelConfirm, setVisivelConfirm] = useState(false);
+
+    const [isEmailValid, setIsEmailValid] = useState(true);
+    const [isSenhaValid, setIsSenhaValid] = useState(true);
+    const [isConfirmSenhaValid, setIsConfirmSenhaValid] = useState(true);
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    useEffect(() => {
+        setIsEmailValid(emailRegex.test(email));
+    }, [email]);
+
+    useEffect(() => {
+        setIsSenhaValid(senha.length >= 8);
+    }, [senha]);
+
+    useEffect(() => {
+        setIsConfirmSenhaValid(senha === confirmarSenha);
+    }, [senha, confirmarSenha]);
+
+    async function enviar() {
+        if (!email || !senha || !confirmarSenha) {
+            alert("Preencha todos os campos");
+            return;
+        }
+
+        if (!isEmailValid) {
+            alert("Digite um email válido");
+            return;
+        }
+
+        if (!isSenhaValid) {
+            alert("A senha deve conter no mínimo 8 caracteres");
+            return;
+        }
+
+        if (!isConfirmSenhaValid) {
+            alert("As senhas não coincidem");
+            return;
+        }
+
+        try {
+            const { status } = await api.post("/cadastroUser", {
+                email_usuario: email,
+                senha_usuario: senha,
+            });
+
+            if (status === 200) {
+                alert("Cadastro realizado com sucesso!");
+                navigate("/SignIn");
+            }
+        } catch (error) {
+            if (axios.isAxiosError(error)) {
+                alert("Erro ao cadastrar usuário");
+            } else {
+                alert("Erro inesperado");
+            }
+        }
     }
 
-    const resposta = await fetch(`${api}/cadastroUser`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        email_usuario: email,
-        senha_usuario: senha,
-      })
-    });
+    return (
+        <main className="flex min-h-screen bg-[#ffffff]">
+            <article className="flex flex-col justify-center px-16 w-[40%]">
 
-    if (resposta.status === 200) {
-      alert("Cadastro realizado com sucesso!");
-      navigate("/SignIn");
-    } else {
-      alert("Erro ao cadastrar usuário");
-    }
-  }
+                <div className="flex gap-10 text-[#d9d9d9] mb-10">
+                    <Link
+                        to={"/SignIn"}
+                        className="cursor-pointer"
+                    >
+                        Login
+                    </Link>
 
-  return (
-    <main className="min-h-screen w-full bg-[#f8f9fa] flex overflow-hidden font-sans">
-      
-   
-      <div className="w-full lg:w-1/2 flex flex-col justify-center items-center p-8 z-10">
-        <div className="w-full max-w-md">
-          
-          
-          <div className="flex gap-12 mb-12 ml-4">
-            <button 
-              onClick={() => navigate("/SignIn")}
-              className="text-gray-400 font-bold text-xl pb-2 border-b-4 border-transparent transition-all"
+                    <p className="text-[#3c8670] border-b-4 border-[#3c8670] pb-1 cursor-pointer font-bold">
+                        Cadastrar-se
+                    </p>
+                </div>
+
+                <div className="flex flex-col gap-6 w-full">
+
+                    <CampoDeTexto
+                        label="E-mail"
+                        placeholder="Digite seu email"
+                        texto={email}
+                        setTexto={setEmail}
+                        isValid={isEmailValid}
+                        errorMessage="E-mail inválido"
+                    >
+                        <BiSolidUserCircle
+                            color="#3c8670"
+                            size={22}
+                        />
+                    </CampoDeTexto>
+
+                    <CampoDeTexto
+                        label="Senha"
+                        placeholder="Digite sua senha"
+                        texto={senha}
+                        setTexto={setSenha}
+                        isValid={isSenhaValid}
+                        errorMessage="Senha deve ter no mínimo 8 caracteres"
+                        type={visivel ? "text" : "password"}
+                    >
+                        <div
+                            className="cursor-pointer"
+                            onClick={() => setVisivel(!visivel)}
+                        >
+                            {visivel ? (
+                                <BsEyeFill
+                                    color="#3c8670"
+                                    size={20}
+                                />
+                            ) : (
+                                <BsEyeSlashFill
+                                    color="#3c8670"
+                                    size={20}
+                                />
+                            )}
+                        </div>
+                    </CampoDeTexto>
+
+                    <CampoDeTexto
+                        label="Confirmar senha"
+                        placeholder="Confirme sua senha"
+                        texto={confirmarSenha}
+                        setTexto={setConfirmarSenha}
+                        isValid={isConfirmSenhaValid}
+                        errorMessage="As senhas não coincidem"
+                        type={visivelConfirm ? "text" : "password"}
+                    >
+                        <div
+                            className="cursor-pointer"
+                            onClick={() => setVisivelConfirm(!visivelConfirm)}
+                        >
+                            {visivelConfirm ? (
+                                <BsEyeFill
+                                    color="#3c8670"
+                                    size={20}
+                                />
+                            ) : (
+                                <BsEyeSlashFill
+                                    color="#3c8670"
+                                    size={20}
+                                />
+                            )}
+                        </div>
+                    </CampoDeTexto>
+
+                    <button
+                        onClick={() => enviar()}
+                        className="rounded-full p-4 text-white font-semibold duration-300 bg-[#3c8670] hover:bg-[#2f6b59] cursor-pointer shadow-xl"
+                    >
+                        Cadastrar
+                    </button>
+                </div>
+            </article>
+
+            <div
+                className="flex-1 bg-cover bg-center flex justify-center items-center"
+                style={{ backgroundImage: `url(${fundoVerde})` }}
             >
-              Login
-            </button>
-            <button className="text-[#40826d] font-bold text-xl pb-2 border-b-4 border-[#40826d]">
-              Sign up
-            </button>
-          </div>
-
-         
-          <div className="flex flex-col gap-6 w-full">
-            
-            <div className="relative group">
-              <img src={perfilIcon} alt="Perfil" className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 object-contain" />
-              <input
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                type="email"
-                placeholder="Insira seu email"
-                className="w-full py-3 px-12 bg-white border border-gray-300 rounded-full shadow-lg focus:outline-none focus:ring-2 focus:ring-[#40826d] transition-all"
-              />
+                <img
+                    className="w-45"
+                    src="pages/Cadastro/Icons/sodi.png"
+                    alt="logo"
+                />
             </div>
-
-            
-            <div className="relative group">
-              <img src={cadeadoIcon} alt="Senha" className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 object-contain" />
-              <input
-                value={senha}
-                onChange={(e) => setSenha(e.target.value)}
-                type="password"
-                placeholder="Insira sua senha"
-                className="w-full py-3 px-12 bg-white border border-gray-300 rounded-full shadow-lg focus:outline-none focus:ring-2 focus:ring-[#40826d] transition-all"
-              />
-            </div>
-
-            <div className="relative group">
-              <img src={cadeadoIcon} alt="Confirmar Senha" className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 object-contain" />
-              <input
-                value={confirmarSenha}
-                onChange={(e) => setConfirmarSenha(e.target.value)}
-                type="password"
-                placeholder="Confirme sua senha"
-                className="w-full py-3 px-12 bg-white border border-gray-300 rounded-full shadow-lg focus:outline-none focus:ring-2 focus:ring-[#40826d] transition-all"
-              />
-            </div>
-
-           
-            <div className="flex justify-end mt-4">
-              <button
-                onClick={enviar}
-                className="bg-[#4a8b76] hover:bg-[#386b5a] text-white font-bold py-2 px-10 rounded-full shadow-md transition-colors text-lg"
-              >
-                Cadastrar
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      
-      <div className="hidden lg:flex w-1/2 relative items-center justify-center overflow-hidden">
-      
-        <img 
-            src={fundoVerde} 
-            alt="Fundo" 
-            className="absolute right-0 h-full w-full object-cover object-left" 
-        />
-        
-        
-        <div className="relative z-20 flex flex-col items-center">
-          <img src={sodiLogo} alt="Logo SODI" className="w-64 h-auto drop-shadow-2xl" />
-        </div>
-      </div>
-    </main>
-  );
+        </main>
+    );
 }
 
 export default Cadastrar;
