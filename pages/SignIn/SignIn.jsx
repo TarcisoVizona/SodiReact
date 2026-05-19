@@ -46,7 +46,7 @@ function SignIn() {
             return;
         }
 
-        console.log({email, senha})
+        console.log({ email, senha })
         try {
             const { data, status } = await api.post("/loginUsuario", {
                 email_usuario: email,
@@ -64,13 +64,17 @@ function SignIn() {
                     : navigate("/");
             }
         } catch (error) {
-            if (axios.isAxiosError(error)){
-                if(error.status == 404)
-                    return alert("E-mail não cadastrado")
-            }
-            else {
-                alert("usuario ou senha incorreto")
-            }
+            console.log(error)
+                if (error.status === 401) {
+                    return alert("Usuário ou senha incorreto");
+                }
+                
+                if (error.status === 404) {
+                    return alert("E-mail não cadastrado");
+                    console.log(error)
+                }
+
+            alert("Erro inesperado");
         }
     }
 
@@ -136,7 +140,7 @@ function SignIn() {
                     </CampoDeTexto>
 
                     <button
-                        onClick={()=> enviar()}
+                        onClick={() => enviar()}
                         className="rounded-full p-4 text-white font-semibold duration-300 bg-[#3c8670] hover:bg-[#2f6b59] cursor-pointer shadow-xl"
                     >
                         Entrar
