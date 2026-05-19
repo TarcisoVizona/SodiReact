@@ -2,8 +2,8 @@ import { useState, useEffect, use } from "react";
 import { CgProfile } from "react-icons/cg";
 import axios from "axios";
 import { api } from "../../api/api-config";
-import { data } from "react-router-dom";
-
+import { data, useNavigate } from "react-router-dom";
+import { CiLogout } from "react-icons/ci";
 
 //CERTO DO TIO RO
 const listaBack = axios
@@ -11,6 +11,8 @@ const listaBack = axios
   .then((resp) => resp.data);
 
 function Home() {
+  const navigate = useNavigate();
+
   const lista = use(listaBack);
 
   const [mostrarForm, setMostrarForm] = useState(false);
@@ -33,6 +35,22 @@ function Home() {
   const [isDescricaoValid, setIsDescricaoValid] = useState(true);
   const [isMarcaValid, setIsMarcaValid] = useState(true);
   const [isMecanicoValid, setIsMecanicoValid] = useState(true);
+
+  // CARREGAR ORDENS DO LOCALSTORAGE
+  useEffect(() => {
+    const ordensSalvas = localStorage.getItem("ordens");
+
+    if (ordensSalvas) {
+      setOrdens(JSON.parse(ordensSalvas));
+    }
+  }, []);
+
+  // SALVAR ORDENS
+  useEffect(() => {
+    if (ordens.length > 0) {
+      localStorage.setItem("ordens", JSON.stringify(ordens));
+    }
+  }, [ordens]);
 
   useEffect(() => {
     if (form.status.length < 5) {
@@ -92,19 +110,6 @@ function Home() {
     };
   }
 
-  async function buscarOrdens() {
-    try {
-      const resposta = await api.get("/OS/");
-      setOrdens(resposta.data);
-    } catch (erro) {
-      alert("Erro ao buscar ordens");
-    }
-  }
-
-  useEffect(() => {
-    buscarOrdens();
-  }, []);
-
   async function salvar() {
     setClicouSalvar(true);
 
@@ -135,6 +140,12 @@ function Home() {
       if (resposta.status == 201) {
         alert("Ordem criada!");
 
+        const novasOrdens = [...ordens, form];
+
+        setOrdens(novasOrdens);
+
+        localStorage.setItem("ordens", JSON.stringify(novasOrdens));
+
         setMostrarForm(false);
 
         setForm({
@@ -155,6 +166,10 @@ function Home() {
     }
   }
 
+  function logout() {
+    navigate("/SignIn");
+  }
+
   return (
     <main className="min-h-screen bg-gray-100 flex flex-col">
       <header className="bg-[#24ac85] p-5 flex justify-center items-center">
@@ -168,8 +183,15 @@ function Home() {
           />
         </div>
 
-        <div className="flex-1 flex justify-end">
-          <CgProfile size="40" color="white" />
+        <div className="flex-1 flex justify-end gap-2">
+          <CiLogout
+            size="40"
+            color="white"
+            className="cursor-pointer"
+            onClick={logout}
+          />
+
+          <CgProfile size="40" color="white" className="cursor-pointer" />
         </div>
       </header>
 
@@ -308,6 +330,46 @@ function Home() {
             </div>
           </div>
         )}
+      </div>
+
+      <div className="flex flex-wrap justify-center gap-6 mt-10 px-5 mb-10">
+        {ordens.map((ordem, index) => (
+          <div key={index} className="bg-white w-80 rounded-2xl shadow p-4">
+            {ordem.imagem && (
+              <img
+                src={ordem.imagem}
+                alt="Imagem"
+                className="w-full h-48 object-cover rounded-xl"
+              />
+            )}
+
+            <div className="mt-4 flex flex-col gap-2">
+              <p>
+                <span className="font-bold">Máquina:</span> {ordem.idMaquina}
+              </p>
+
+              <p>
+                <span className="font-bold">Status:</span> {ordem.status}
+              </p>
+
+              <p>
+                <span className="font-bold">Ano:</span> {ordem.ano}
+              </p>
+
+              <p>
+                <span className="font-bold">Descrição:</span> {ordem.descricao}
+              </p>
+
+              <p>
+                <span className="font-bold">Marca:</span> {ordem.marca}
+              </p>
+
+              <p>
+                <span className="font-bold">Mecânico:</span> {ordem.mecanico}
+              </p>
+            </div>
+          </div>
+        ))}
       </div>
 
       <footer className="bg-[#24ac85] h-20 mt-auto"></footer>

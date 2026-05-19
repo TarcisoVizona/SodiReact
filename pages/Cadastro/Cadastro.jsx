@@ -25,18 +25,19 @@ function Cadastrar() {
     const [isConfirmSenhaValid, setIsConfirmSenhaValid] = useState(true);
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const senhaRegex = /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$/;
 
     useEffect(() => {
         setIsEmailValid(emailRegex.test(email));
     }, [email]);
 
     useEffect(() => {
-        setIsSenhaValid(senha.length >= 8);
+        setIsSenhaValid(senhaRegex.test(senha));
     }, [senha]);
 
     useEffect(() => {
         setIsConfirmSenhaValid(senha === confirmarSenha);
-    }, [senha, confirmarSenha]);
+    }, [confirmarSenha]);
 
     async function enviar() {
         if (!email || !senha || !confirmarSenha) {
@@ -50,7 +51,7 @@ function Cadastrar() {
         }
 
         if (!isSenhaValid) {
-            alert("A senha deve conter no mínimo 8 caracteres");
+            alert("A senha deve conter no mínimo 8 caracteres, Letras maiúscula e minúscula, além de um símbolo");
             return;
         }
 
@@ -70,6 +71,7 @@ function Cadastrar() {
                 navigate("/SignIn");
             }
         } catch (error) {
+            console.log(error)
             if (axios.isAxiosError(error)) {
                 alert("Erro ao cadastrar usuário");
             } else {
